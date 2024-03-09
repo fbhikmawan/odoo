@@ -153,7 +153,7 @@ class Project(models.Model):
             "type": "ir.actions.act_window",
             "res_model": "sale.order",
             'name': _("%(name)s's Sales Orders", name=self.name),
-            "context": {"create": self.env.context.get('create_for_project_id'), "show_sale": True},
+            "context": {"create": self.env.context.get('create_for_project_id', False), "show_sale": True},
         }
         if len(all_sale_orders) <= 1:
             action_window.update({
@@ -364,9 +364,9 @@ class Project(models.Model):
         } for sol_read in sols.with_context(with_price_unit=True).read(['display_name', 'product_uom_qty', 'qty_delivered', 'qty_invoiced', 'product_uom'])]
 
     def _get_sale_items_domain(self, additional_domain=None):
-        sale_items = self._get_sale_order_items()
+        sale_items = self.sudo()._get_sale_order_items()
         domain = [
-            ('order_id', 'in', sale_items.order_id.ids),
+            ('order_id', 'in', sale_items.sudo().order_id.ids),
             ('is_downpayment', '=', False),
             ('state', '=', 'sale'),
             ('display_type', '=', False),
@@ -381,7 +381,7 @@ class Project(models.Model):
         return domain
 
     def _get_sale_items(self, with_action=True):
-        domain = self.sudo()._get_sale_items_domain()
+        domain = self._get_sale_items_domain()
         return {
             'total': self.env['sale.order.line'].sudo().search_count(domain),
             'data': self.get_sale_items_data(domain, limit=5, with_action=with_action),

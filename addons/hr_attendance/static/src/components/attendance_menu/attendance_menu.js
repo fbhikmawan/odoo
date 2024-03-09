@@ -8,6 +8,7 @@ import { deserializeDateTime } from "@web/core/l10n/dates";
 import { registry } from "@web/core/registry";
 import { useService } from "@web/core/utils/hooks";
 import { useDebounced } from "@web/core/utils/timing";
+import { isIosApp } from "@web/core/browser/feature_detection";
 const { DateTime } = luxon;
 
 export class ActivityMenu extends Component {
@@ -52,7 +53,8 @@ export class ActivityMenu extends Component {
     }
 
     async signInOut() {
-        if(navigator.geolocation){
+        // iOS app lacks permissions to call `getCurrentPosition`
+        if (!isIosApp()) {
             navigator.geolocation.getCurrentPosition(
                 async ({coords: {latitude, longitude}}) => {
                     await this.rpc("/hr_attendance/systray_check_in_out", {
@@ -64,10 +66,12 @@ export class ActivityMenu extends Component {
                 async err => {
                     await this.rpc("/hr_attendance/systray_check_in_out")
                     await this.searchReadEmployee()
+                },
+                {
+                    enableHighAccuracy: true,
                 }
             )
-        }
-        else{
+        } else {
             await this.rpc("/hr_attendance/systray_check_in_out")
             await this.searchReadEmployee()
         }

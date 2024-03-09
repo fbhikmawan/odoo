@@ -227,7 +227,7 @@ msgstr "สร้างรายการใหม่"
 #: code:addons/hr_skills/static/src/fields/resume_one2many/resume_one2many.js:0
 #, python-format
 msgid "Create a resume line"
-msgstr ""
+msgstr "สร้างบรรทัดเรซูเม่"
 
 #. module: hr_skills
 #. odoo-javascript
@@ -1039,6 +1039,11 @@ msgstr "ความคืบหน้า"
 #: model_terms:ir.ui.view,arch_db:hr_skills.employee_skill_level_view_form
 msgid "Progress (%)"
 msgstr "ความคืบหน้า (%)"
+
+#. module: hr_skills
+#: model_terms:ir.ui.view,arch_db:hr_skills.report_employee_cv_main_panel
+msgid "Progress bar"
+msgstr ""
 
 #. module: hr_skills
 #: model:ir.model.fields,help:hr_skills.field_hr_employee_skill__level_progress

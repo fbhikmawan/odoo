@@ -7,6 +7,7 @@
 # Tadeusz Karpiński <tadeuszkarpinski@gmail.com>, 2023
 # Paweł Wodyński <pw@myodoo.pl>, 2023
 # Bartłomiej Chojnacki, 2024
+# Monika Trojan, 2024
 # Wil Odoo, 2024
 # 
 msgid ""
@@ -186,7 +187,7 @@ msgstr "%s Z podatkami"
 #: code:addons/account/models/account_bank_statement.py:0
 #, python-format
 msgid "%s Statement %s"
-msgstr ""
+msgstr "%s Wyciąg %s"
 
 #. module: account
 #. odoo-python
@@ -9629,6 +9630,13 @@ msgid "Never"
 msgstr "Nigdy"
 
 #. module: account
+#. odoo-python
+#: code:addons/account/models/account_tax.py:0
+#, python-format
+msgid "New"
+msgstr "Nowe"
+
+#. module: account
 #: model:ir.model.fields,field_description:account.field_account_setup_bank_manual_config__new_journal_name
 msgid "New Journal Name"
 msgstr "Nowa nazwa dziennika"
@@ -11816,6 +11824,14 @@ msgstr ""
 #: model:ir.model,name:account.model_account_resequence_wizard
 msgid "Remake the sequence of Journal Entries."
 msgstr "Zmień kolejność wpisów w dzienniku."
+
+#. module: account
+#. odoo-python
+#: code:addons/account/models/account_tax.py:0
+#: code:addons/account/models/account_tax.py:0
+#, python-format
+msgid "Removed"
+msgstr "Usunięte"
 
 #. module: account
 #: model:account.account,name:account.1_expense_rent

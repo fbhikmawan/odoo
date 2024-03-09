@@ -13,9 +13,9 @@
 # matjaz k <matjaz@mentis.si>, 2023
 # Martin Trigaux, 2023
 # Matjaz Mozetic <m.mozetic@matmoz.si>, 2023
-# Grega Vavtar <grega@hbs.si>, 2023
 # Tadej Lupšina <tadej@hbs.si>, 2024
 # Jasmina Macur <jasmina@hbs.si>, 2024
+# Grega Vavtar <grega@hbs.si>, 2024
 # Katja Deržič, 2024
 # 
 msgid ""
@@ -304,7 +304,7 @@ msgstr ""
 #. module: stock
 #: model:ir.model.fields.selection,name:stock.selection__stock_picking_type__product_label_format__2x7xprice
 msgid "2 x 7 with price"
-msgstr ""
+msgstr "2 x 7 s ceno"
 
 #. module: stock
 #: model_terms:ir.ui.view,arch_db:stock.report_package_barcode
@@ -347,12 +347,12 @@ msgstr ""
 #. module: stock
 #: model:ir.model.fields.selection,name:stock.selection__stock_picking_type__product_label_format__4x12xprice
 msgid "4 x 12 with price"
-msgstr ""
+msgstr "4 x 12 s ceno"
 
 #. module: stock
 #: model:ir.model.fields.selection,name:stock.selection__stock_picking_type__product_label_format__4x7xprice
 msgid "4 x 7 with price"
-msgstr ""
+msgstr "4 x 7 s ceno"
 
 #. module: stock
 #: model_terms:ir.ui.view,arch_db:stock.report_package_barcode
@@ -5053,7 +5053,7 @@ msgstr ""
 #: model:ir.model.fields,field_description:stock.field_stock_track_line__product_display_name
 #: model:ir.model.fields,field_description:stock.field_stock_warehouse_orderpoint__name
 msgid "Name"
-msgstr "Ime in priimek"
+msgstr "Naziv"
 
 #. module: stock
 #: model_terms:ir.ui.view,arch_db:stock.report_package_barcode_small
@@ -7466,6 +7466,14 @@ msgid ""
 msgstr ""
 "Proge bodo ustvarjene za ta oskrbovalna skladišča. Lahko jih izbirate na "
 "proizvodih in kategorijah proizvodov."
+
+#. module: stock
+#. odoo-python
+#: code:addons/stock/models/stock_location.py:0
+#: code:addons/stock/models/stock_rule.py:0
+#, python-format
+msgid "Rule %s belongs to %s while the route belongs to %s."
+msgstr ""
 
 #. module: stock
 #: model:ir.model.fields,field_description:stock.field_stock_rule__rule_message

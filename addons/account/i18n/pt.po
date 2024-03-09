@@ -6,7 +6,6 @@
 # Pedro Castro Silva <pedrocs@exo.pt>, 2023
 # cafonso <cafonso62@gmail.com>, 2023
 # João Carvalho <jpldcarvalho+github@gmail.com>, 2023
-# Arxi, 2023
 # Pedro Oliveira <peter18lra@gmail.com>, 2023
 # a75f12d3d37ea5bf159c4b3e85eb30e7_0fa6927, 2023
 # Nuno Silva <nuno.silva@arxi.pt>, 2023
@@ -16,6 +15,7 @@
 # Rita Bastos, 2024
 # Maitê Dietze, 2024
 # NumerSpiral HBG, 2024
+# Arxi, 2024
 # Wil Odoo, 2024
 # 
 msgid ""
@@ -9531,6 +9531,13 @@ msgid "Never"
 msgstr "Nunca"
 
 #. module: account
+#. odoo-python
+#: code:addons/account/models/account_tax.py:0
+#, python-format
+msgid "New"
+msgstr "Novo"
+
+#. module: account
 #: model:ir.model.fields,field_description:account.field_account_setup_bank_manual_config__new_journal_name
 msgid "New Journal Name"
 msgstr "Novo nome de diário "
@@ -11674,6 +11681,14 @@ msgstr ""
 #. module: account
 #: model:ir.model,name:account.model_account_resequence_wizard
 msgid "Remake the sequence of Journal Entries."
+msgstr ""
+
+#. module: account
+#. odoo-python
+#: code:addons/account/models/account_tax.py:0
+#: code:addons/account/models/account_tax.py:0
+#, python-format
+msgid "Removed"
 msgstr ""
 
 #. module: account
@@ -15099,7 +15114,7 @@ msgstr "Valor total que terá que pagar a este fornecedor."
 #: model:ir.model.fields,field_description:account.field_account_invoice_report__price_total
 #: model_terms:ir.ui.view,arch_db:account.view_invoice_tree
 msgid "Total in Currency"
-msgstr ""
+msgstr "Total na moeda"
 
 #. module: account
 #: model:ir.model.fields,field_description:account.field_account_bank_statement_line__amount_total_in_currency_signed

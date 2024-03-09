@@ -11509,7 +11509,7 @@ QUnit.module("Views", (hooks) => {
                     </tree>`,
                 mockRPC(route, args) {
                     if (args.method === "write") {
-                        assert.deepEqual(args.args, [[1, 2], { date_start: "2021-04-01" }]);
+                        assert.deepEqual(args.args, [[1, 2], { date_start: "2021-04-01",  date_end: "2017-01-26"}]);
                     }
                 },
             });
@@ -11535,7 +11535,7 @@ QUnit.module("Views", (hooks) => {
             const changesTable = target.querySelector(".modal-body .o_modal_changes");
             assert.strictEqual(
                 changesTable.innerText.replaceAll("\n", "").replaceAll("\t", ""),
-                "Field:Date StartUpdate to:04/01/202101/26/2017"
+                "Field:Date StartUpdate to:04/01/202101/26/2017Field:Date EndUpdate to:01/26/2017"
             );
 
             // Valid the confirm dialog
@@ -16561,11 +16561,11 @@ QUnit.module("Views", (hooks) => {
             patchWithCleanup(browser.localStorage, {
                 getItem(key) {
                     assert.step("getItem " + key);
-                    return forceLocalStorage ? "m2o" : super.getItem(arguments);
+                    return forceLocalStorage ? "m2o" : super.getItem(...arguments);
                 },
                 setItem(key, value) {
                     assert.step("setItem " + key + " to " + JSON.stringify(String(value)));
-                    return super.setItem(arguments);
+                    return super.setItem(...arguments);
                 },
             });
 
@@ -16638,6 +16638,87 @@ QUnit.module("Views", (hooks) => {
                     .is(":visible"),
                 "should have a visible reference field"
             );
+        }
+    );
+
+    QUnit.test(
+        "list view with optional fields from local storage being the empty array",
+        async function (assert) {
+            patchWithCleanup(browser.localStorage, {
+                getItem(key) {
+                    assert.step("getItem " + key);
+                    return super.getItem(...arguments);
+                },
+                setItem(key, value) {
+                    assert.step("setItem " + key + " to " + JSON.stringify(String(value)));
+                    super.setItem(...arguments);
+                },
+            });
+
+            const verifyHeaders = (namedHeaders) => {
+                const headers = [...target.querySelectorAll(".o_list_table thead th")];
+                assert.hasClass(headers[0], "o_list_record_selector");
+                assert.hasClass(headers[headers.length - 1], "o_list_actions_header");
+                assert.equal(
+                    headers.length,
+                    namedHeaders.length + 2,
+                    `list has ${namedHeaders.length + 2} headers`
+                );
+                for (let i = 1; i < headers.length - 1; i++) {
+                    assert.equal(
+                        headers[i].dataset.name,
+                        namedHeaders[i - 1],
+                        `header at index ${i} is ${namedHeaders[i - 1]}`
+                    );
+                }
+            };
+
+            serverData.actions = {
+                1: {
+                    id: 1,
+                    name: "Action 1",
+                    res_model: "foo",
+                    type: "ir.actions.act_window",
+                    views: [[42, "list"]],
+                    search_view_id: [1, "search"],
+                },
+            };
+            serverData.views = {
+                "foo,1,search": "<search></search>",
+                "foo,42,list": `
+                    <tree>
+                        <field name="foo"/>
+                        <field name="m2o" optional="hide"/>
+                        <field name="reference" optional="show"/>
+                    </tree>`,
+            };
+            const localStorageKey = "optional_fields,foo,list,42,foo,m2o,reference";
+            const webClient = await createWebClient({ serverData });
+            await doAction(webClient, 1);
+
+            // verify initialization
+            assert.verifySteps(["getItem " + localStorageKey]);
+            verifyHeaders(["foo", "reference"]);
+            // open optional columns headers dropdown
+            await click(target.querySelector("table .o_optional_columns_dropdown button"));
+            assert.containsN(
+                target,
+                "div.o_optional_columns_dropdown span.dropdown-item",
+                2,
+                "dropdown has 2 optional column headers"
+            );
+            // disable optional field "reference" (no optional column enabled)
+            await click(
+                target.querySelectorAll(
+                    "div.o_optional_columns_dropdown span.dropdown-item input"
+                )[1]
+            );
+            assert.verifySteps(["setItem " + localStorageKey + ' to ""']);
+            verifyHeaders(["foo"]);
+            // mount again to ensure that active optional columns will not be reset while empty
+            await doAction(webClient, 1);
+            assert.verifySteps(["getItem " + localStorageKey]);
+            verifyHeaders(["foo"]);
         }
     );
 

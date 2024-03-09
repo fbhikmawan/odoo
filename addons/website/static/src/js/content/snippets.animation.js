@@ -4,6 +4,7 @@
  * Provides a way to start JS code for snippets' initialization and animations.
  */
 
+import { _t } from "@web/core/l10n/translation";
 import { loadJS } from "@web/core/assets";
 import { uniqueId } from "@web/core/utils/functions";
 import { escape } from "@web/core/utils/strings";
@@ -792,6 +793,7 @@ registry.mediaVideo = publicWidget.Widget.extend(MobileYoutubeAutoplayMixin, {
             src: src,
             frameborder: '0',
             allowfullscreen: 'allowfullscreen',
+            "aria-label": _t("Media video"),
         })[0];
         this.$el.append(iframeEl);
         return iframeEl;
@@ -887,13 +889,13 @@ registry.backgroundVideo = publicWidget.Widget.extend(MobileYoutubeAutoplayMixin
         if (relativeRatio >= 1.0) {
             style['width'] = '100%';
             style['height'] = (relativeRatio * 100) + '%';
-            style['left'] = '0';
-            style['top'] = (-(relativeRatio - 1.0) / 2 * 100) + '%';
+            style['inset-inline-start'] = '0';
+            style['inset-block-start'] = (-(relativeRatio - 1.0) / 2 * 100) + '%';
         } else {
             style['width'] = ((1 / relativeRatio) * 100) + '%';
             style['height'] = '100%';
-            style['left'] = (-((1 / relativeRatio) - 1.0) / 2 * 100) + '%';
-            style['top'] = '0';
+            style['inset-inline-start'] = (-((1 / relativeRatio) - 1.0) / 2 * 100) + '%';
+            style['inset-block-start'] = '0';
         }
         this.$iframe.css(style);
 
@@ -1221,6 +1223,7 @@ registry.FooterSlideout = publicWidget.Widget.extend({
     },
 });
 
+// TODO in master: remove this widget (not used anymore with the new headers).
 registry.TopMenuCollapse = publicWidget.Widget.extend({
     selector: "header #top_menu_collapse",
 
@@ -1775,7 +1778,7 @@ registry.ImageShapeHoverEffet = publicWidget.Widget.extend({
      * @private
      */
     _onMouseEnter() {
-        if (!this.originalImgSrc) {
+        if (!this.originalImgSrc || !this.$target[0].dataset.hoverEffect) {
             return;
         }
         this.lastMouseEvent = this.lastMouseEvent.then(() => new Promise((resolve) => {
@@ -1811,7 +1814,7 @@ registry.ImageShapeHoverEffet = publicWidget.Widget.extend({
      */
     _onMouseLeave() {
         this.lastMouseEvent = this.lastMouseEvent.then(() => new Promise((resolve) => {
-            if (!this.originalImgSrc || !this.svgInEl) {
+            if (!this.originalImgSrc || !this.svgInEl || !this.$target[0].dataset.hoverEffect) {
                 resolve();
                 return;
             }

@@ -169,7 +169,7 @@ class StockPickingType(models.Model):
     @api.constrains('active')
     def _check_active(self):
         for picking_type in self:
-            pos_config = self.env['pos.config'].search([('picking_type_id', '=', picking_type.id)], limit=1)
+            pos_config = self.env['pos.config'].sudo().search([('picking_type_id', '=', picking_type.id)], limit=1)
             if pos_config:
                 raise ValidationError(_("You cannot archive '%s' as it is used by a POS configuration '%s'.", picking_type.name, pos_config.name))
 
@@ -242,9 +242,34 @@ class StockMove(models.Model):
             move.quantity = move.product_uom_qty
         moves_remaining = self - moves_to_assign
         existing_lots = moves_remaining._create_production_lots_for_pos_order(related_order_lines)
+        move_lines_to_create = []
+        mls_qties = []
         if are_qties_done:
             for move in moves_remaining:
-                move.quantity = move.product_uom_qty
+                move.move_line_ids.quantity = 0
+                for line in lines_data[move.product_id.id]['order_lines']:
+                    sum_of_lots = 0
+                    for lot in line.pack_lot_ids.filtered(lambda l: l.lot_name):
+                        qty = 1 if line.product_id.tracking == 'serial' else abs(line.qty)
+                        ml_vals = dict(move._prepare_move_line_vals(qty))
+                        if existing_lots:
+                            existing_lot = existing_lots.filtered_domain([('product_id', '=', line.product_id.id), ('name', '=', lot.lot_name)])
+                            quant = self.env['stock.quant']
+                            if existing_lot:
+                                quant = self.env['stock.quant'].search(
+                                    [('lot_id', '=', existing_lot.id), ('quantity', '>', '0.0'), ('location_id', 'child_of', move.location_id.id)],
+                                    order='id desc',
+                                    limit=1
+                                )
+                            ml_vals.update({
+                                'quant_id': quant.id,
+                            })
+                        else:
+                            ml_vals.update({'lot_name': lot.lot_name})
+                        move_lines_to_create.append(ml_vals)
+                        mls_qties.append(qty)
+                        sum_of_lots += qty
+            self.env['stock.move.line'].create(move_lines_to_create)
         else:
             for move in moves_remaining:
                 for line in lines_data[move.product_id.id]['order_lines']:

@@ -355,11 +355,15 @@ export class PaymentScreen extends Component {
                 ? this.currentOrder.finalized
                 : true;
 
-            if (this.hardwareProxy.printer && invoiced_finalized) {
-                const printResult = await this.printer.print(OrderReceipt, {
-                    data: this.pos.get_order().export_for_printing(),
-                    formatCurrency: this.env.utils.formatCurrency,
-                });
+            if (invoiced_finalized) {
+                const printResult = await this.printer.print(
+                    OrderReceipt, 
+                    {
+                        data: this.pos.get_order().export_for_printing(),
+                        formatCurrency: this.env.utils.formatCurrency,
+                    },
+                    { webPrintFallback: true }
+                );
 
                 if (printResult && this.pos.config.iface_print_skip_screen) {
                     this.pos.removeOrder(this.currentOrder);
@@ -403,17 +407,8 @@ export class PaymentScreen extends Component {
             return "/point_of_sale/static/src/img/card-bank.png";
         }
     }
-    async _isOrderValid(isForceValidate) {
-        if (this.currentOrder.get_orderlines().length === 0 && this.currentOrder.is_to_invoice()) {
-            this.popup.add(ErrorPopup, {
-                title: _t("Empty Order"),
-                body: _t(
-                    "There must be at least one product in your order before it can be validated and invoiced."
-                ),
-            });
-            return false;
-        }
 
+    async _askForCustomerIfRequired() {
         const splitPayments = this.paymentLines.filter(
             (payment) => payment.payment_method.split_transactions
         );
@@ -426,6 +421,22 @@ export class PaymentScreen extends Component {
             if (confirmed) {
                 this.selectPartner();
             }
+            return false;
+        }
+    }
+
+    async _isOrderValid(isForceValidate) {
+        if (this.currentOrder.get_orderlines().length === 0 && this.currentOrder.is_to_invoice()) {
+            this.popup.add(ErrorPopup, {
+                title: _t("Empty Order"),
+                body: _t(
+                    "There must be at least one product in your order before it can be validated and invoiced."
+                ),
+            });
+            return false;
+        }
+
+        if (await this._askForCustomerIfRequired() === false) {
             return false;
         }
 

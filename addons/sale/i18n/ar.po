@@ -2668,7 +2668,7 @@ msgstr "المفوتر هذا الشهر"
 #: model_terms:ir.ui.view,arch_db:sale.crm_team_view_kanban_dashboard
 #: model_terms:ir.ui.view,arch_db:sale.view_order_form
 msgid "Invoices"
-msgstr "الفواتير"
+msgstr "فواتير العملاء "
 
 #. module: sale
 #: model:ir.actions.act_window,name:sale.action_account_invoice_report_salesteam
@@ -4922,6 +4922,14 @@ msgstr "نسبة المبلغ المطلوب الذي يجب على العميل
 #: model:ir.model.fields,help:sale.field_res_config_settings__prepayment_percent
 msgid "The percentage of the amount needed to be paid to confirm quotations."
 msgstr "النسبة المئوية للمبلغ المطلوب دفعه لتأكيد عروض الأسعار. "
+
+#. module: sale
+#. odoo-python
+#. odoo-python
+#: code:addons/sale/models/product_template.py:0
+#, python-format
+msgid "The product (%s) has incompatible values: %s"
+msgstr "المنتج (%s) به قيم غير متوافقة: %s "
 
 #. module: sale
 #. odoo-python

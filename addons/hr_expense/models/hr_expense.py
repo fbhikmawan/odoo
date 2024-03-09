@@ -203,8 +203,9 @@ class HrExpense(models.Model):
 
     @api.depends('product_has_cost')
     def _compute_currency_id(self):
-        for expense in self.filtered("product_has_cost"):
-            expense.currency_id = expense.company_currency_id
+        for expense in self:
+            if expense.product_has_cost and expense.state in {'draft', 'reported'}:
+                expense.currency_id = expense.company_currency_id
 
     @api.depends('sheet_id.is_editable')
     def _compute_is_editable(self):
@@ -217,7 +218,7 @@ class HrExpense(models.Model):
     @api.onchange('product_has_cost')
     def _onchange_product_has_cost(self):
         """ Reset quantity to 1, in case of 0-cost product. To make sure switching non-0-cost to 0-cost doesn't keep the quantity."""
-        if not self.product_has_cost:
+        if not self.product_has_cost and self.state in {'draft', 'reported'}:
             self.quantity = 1
 
     @api.depends_context('lang')
@@ -278,7 +279,10 @@ class HrExpense(models.Model):
     def _compute_from_product(self):
         for expense in self:
             expense.product_has_cost = expense.product_id and not expense.company_currency_id.is_zero(expense.product_id.standard_price)
-            expense.product_has_tax = bool(expense.product_id.supplier_taxes_id.filtered_domain(self.env['account.tax']._check_company_domain(expense.company_id)))
+            tax_ids = expense.product_id.supplier_taxes_id.filtered_domain(self.env['account.tax']._check_company_domain(expense.company_id))
+            expense.product_has_tax = bool(tax_ids)
+            if not expense.product_has_cost and expense.state in {'draft', 'reported'}:
+                expense.quantity = 1
 
     @api.depends('product_id.uom_id')
     def _compute_uom_id(self):
@@ -398,6 +402,8 @@ class HrExpense(models.Model):
            when edited after creation.
         """
         for expense in self:
+            if expense.state not in {'draft', 'reported'}:
+                continue
             product_id = expense.product_id
             if product_id and expense.product_has_cost and not expense.nb_attachment:
                 expense.price_unit = product_id._price_compute(
@@ -657,19 +663,28 @@ class HrExpense(models.Model):
 
         sheets = (own_expenses, company_expenses) if create_two_reports else (expenses_with_amount,)
         values = []
+
+        # We use a fallback name only when several expense sheets are created,
+        # else we use the form view required name to force the user to set a name
         for todo in sheets:
+            paid_by = 'company' if todo[0].payment_mode == 'company_account' else 'employee'
+            sheet_name = _("New Expense Report, paid by %(paid_by)s", paid_by=paid_by) if len(sheets) > 1 else False
             if len(todo) == 1:
-                expense_name = todo.name
+                sheet_name = todo.name
             else:
                 dates = todo.mapped('date')
-                min_date = format_date(self.env, min(dates))
-                max_date = format_date(self.env, max(dates))
-                expense_name = min_date if max_date == min_date else f'{min_date} - {max_date}'
+                if False not in dates:  # If at least one date isn't set, we don't set a default name
+                    min_date = format_date(self.env, min(dates))
+                    max_date = format_date(self.env, max(dates))
+                    if min_date == max_date:
+                        sheet_name = min_date
+                    else:
+                        sheet_name = _("%(date_from)s - %(date_to)s", date_from=min_date, date_to=max_date)
 
             values.append({
                 'company_id': self.company_id.id,
                 'employee_id': self[0].employee_id.id,
-                'name': expense_name,
+                'name': sheet_name,
                 'expense_line_ids': [Command.set(todo.ids)],
                 'state': 'draft',
             })
@@ -890,13 +905,11 @@ class HrExpense(models.Model):
                 ('employee_id', 'in', self.env.user.employee_ids.ids),
                 '|', '&', ('payment_mode', 'in', ('own_account', 'company_account')), ('state', 'in', ('draft', 'reported', 'submitted')),
                      '&', ('payment_mode', '=', 'own_account'), ('state', '=', 'approved')
-            ], ['state', 'currency_id'], ['total_amount_currency:sum'])
-        for state, currency, total_amount_sum in expenses:
+            ], ['state'], ['total_amount:sum'])
+        for state, total_amount_sum in expenses:
             if state in {'draft', 'reported'}:  # Fuse the two states into only one "To Submit" state
                 state = 'to_submit'
-            currency = currency or target_currency
-            amount = currency._convert(total_amount_sum, target_currency, self.env.company, fields.Date.today())
-            expense_state[state]['amount'] += amount
+            expense_state[state]['amount'] += total_amount_sum
         return expense_state
 
     # ----------------------------------------

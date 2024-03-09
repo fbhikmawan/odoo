@@ -192,11 +192,11 @@
             </t>
 
             <div class="text-center mt16 mb256">
-                <button id="next_page" t-attf-class="btn #{'btn-secondary' if survey_last else 'btn-primary'} d-none">Next</button>
                 <button type="submit" value="finish" class="btn btn-secondary disabled">Submit</button>
-                    <span class="fw-bold text-muted ms-2 d-none d-md-inline">
-                        <span id="enter-tooltip">or press Enter</span>
-                    </span>
+                <button id="next_page" t-attf-class="btn #{'btn-secondary' if survey_last else 'btn-primary'} d-none">Next</button>
+                <span class="fw-bold text-muted ms-2 d-none d-md-inline">
+                    <span id="enter-tooltip">or press CTRL+Enter</span>
+                </span>
             </div>
         </t>
 
@@ -213,13 +213,13 @@
                 <div class="col-12 text-center mt16">
                     <t t-set="submit_value" t-value="'finish' if survey_last or answer.is_session_answer else 'next_skipped'
                         if answer.survey_first_submitted and skipped_questions.page_id and page in skipped_questions.page_id else 'next'"/>
-                    <button id="next_page" t-attf-class="btn #{'btn-secondary' if survey_last else 'btn-primary'} d-none">Next</button>
                     <button type="submit" t-att-value="submit_value" t-attf-class="btn #{'btn-secondary' if survey_last else 'btn-primary'} disabled">
                         <t t-if="submit_value == 'finish'">Submit</t>
                         <t t-elif="submit_value == 'next_skipped'">Next Skipped</t>
                         <t t-else="">Continue</t>
                     </button>
-                    <span class="fw-bold text-muted ms-2 d-none d-md-inline" id="enter-tooltip"> or press Enter</span>
+                    <button id="next_page" t-attf-class="btn #{'btn-secondary' if survey_last else 'btn-primary'} d-none">Next</button>
+                    <span class="fw-bold text-muted ms-2 d-none d-md-inline" id="enter-tooltip"> or press CTRL+Enter</span>
                 </div>
             </div>
         </t>
@@ -253,12 +253,12 @@
                     <div class="col-12 text-center mt16">
                         <t t-set="submit_value" t-value="'finish' if survey_last or answer.is_session_answer else
                             'next_skipped' if answer.survey_first_submitted and skipped_questions and question in skipped_questions else 'next'"/>
-                        <button id="next_page" t-attf-class="btn #{'btn-secondary' if survey_last else 'btn-primary'} d-none">Next</button>
                         <button type="submit" t-att-value="submit_value" t-attf-class="btn #{'btn-secondary' if survey_last else 'btn-primary'} disabled">
                             <t t-if="submit_value == 'finish'">Submit</t>
                             <t t-elif="submit_value == 'next_skipped'">Next Skipped</t>
                             <t t-else="">Continue</t>
                         </button>
+                        <button id="next_page" t-attf-class="btn #{'btn-secondary' if survey_last else 'btn-primary'} d-none">Next</button>
                         <span class="fw-bold text-muted ms-2 d-none d-md-inline">
                             <span id="enter-tooltip">or press Enter</span>
                         </span>
@@ -361,7 +361,7 @@
     </template>
 
     <template id="question_text_box" name="Question: free text box">
-        <div class="o_survey_comment_container p-0">
+        <div class="o_survey_comment_container h-auto p-0">
             <textarea class="form-control o_survey_question_text_box bg-transparent text-dark rounded-0 p-0" rows="3"
                       t-att-name="question.id" t-att-placeholder="question.question_placeholder"
                       t-att-data-question-type="question.question_type"><t t-if="answer_lines" t-esc="answer_lines[0].value_text_box or None"/></textarea>

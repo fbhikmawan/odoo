@@ -644,7 +644,7 @@ export class Wysiwyg extends Component {
                     && !$target[0].closest('.o_extra_menu_items')
                     && $target[0].isContentEditable) {
                 if (ev.ctrlKey || ev.metaKey) {
-                    window.open(ev.target.href, '_blank')
+                    window.open($target[0].href, '_blank');
                 }
                 this.linkPopover = $target.data('popover-widget-initialized');
                 if (!this.linkPopover) {
@@ -1683,8 +1683,8 @@ export class Wysiwyg extends Component {
                     const rangePosition = getRangePosition(popover, this.options.document, options);
                     popover.style.top = rangePosition.top + 'px';
                     popover.style.left = rangePosition.left + 'px';
-                    const oInputBox = popover.getElementsByClassName('o_input')[0];
-                    oInputBox.focus();
+                    const oInputBox = popover.querySelector('input');
+                    oInputBox?.focus();
                 },
             },
         );

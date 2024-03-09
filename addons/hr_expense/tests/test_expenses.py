@@ -8,7 +8,7 @@ from odoo import Command
 from odoo.addons.hr_expense.tests.common import TestExpenseCommon
 from odoo.exceptions import UserError
 from odoo.tests import tagged, Form
-from odoo.tools.misc import formatLang
+from odoo.tools.misc import format_date
 
 
 @tagged('-at_install', 'post_install')
@@ -845,3 +845,142 @@ class TestExpenses(TestExpenseCommon):
                 lambda att: att.checksum in sheet.expense_line_ids.attachment_ids.mapped('checksum')
             ).unlink()
             assert_attachments_are_synced(sheet, sheet_attachment, sheet_has_attachment)
+
+    def test_create_report_name(self):
+        """
+            When an expense sheet is created from one or more expense, the report name is generated through the expense name or date.
+            As the expense sheet is created directly from the hr.expense._get_default_expense_sheet_values method,
+            we only need to test the method.
+        """
+        expense_with_date_1, expense_with_date_2, expense_without_date = self.env['hr.expense'].create([{
+            'company_id': self.company_data['company'].id,
+            'name': f'test expense {i}',
+            'employee_id': self.expense_employee.id,
+            'product_id': self.product_a.id,
+            'date': '2021-01-01',
+            'quantity': i + 1,
+        } for i in range(3)])
+        expense_without_date.date = False
+
+        # CASE 1: only one expense with or without date -> expense name
+        sheet_name = expense_with_date_1._get_default_expense_sheet_values()[0]['name']
+        self.assertEqual(expense_with_date_1.name, sheet_name, "The report name should be the same as the expense name")
+        sheet_name = expense_without_date._get_default_expense_sheet_values()[0]['name']
+        self.assertEqual(expense_without_date.name, sheet_name, "The report name should be the same as the expense name")
+
+        # CASE 2: two expenses with the same date -> expense date
+        expenses = expense_with_date_1 | expense_with_date_2
+        sheet_name = expenses._get_default_expense_sheet_values()[0]['name']
+        self.assertEqual(format_date(self.env, expense_with_date_1.date), sheet_name, "The report name should be the same as the expense date")
+
+        # CASE 3: two expenses with different dates -> date range
+        expense_with_date_2.date = '2021-01-02'
+        sheet_name = expenses._get_default_expense_sheet_values()[0]['name']
+        self.assertEqual(
+            f"{format_date(self.env, expense_with_date_1.date)} - {format_date(self.env, expense_with_date_2.date)}",
+            sheet_name,
+            "The report name should be the date range of the expenses",
+        )
+
+        # CASE 4: One or more expense doesn't have a date (single sheet) -> No fallback name
+        expenses |= expense_without_date
+        sheet_name = expenses._get_default_expense_sheet_values()[0]['name']
+        self.assertFalse(
+            sheet_name,
+            "The report (with the empty expense date) name should be empty as a fallback when several reports are created",
+        )
+        expenses.date = False
+        sheet_name = expenses._get_default_expense_sheet_values()[0]['name']
+        self.assertFalse(sheet_name, "The report name should be empty as a fallback")
+
+        # CASE 5: One or more expense doesn't have a date (multiple sheets) -> Fallback name
+        expenses |= self.env['hr.expense'].create([{
+            'company_id': self.company_data['company'].id,
+            'name': f'test expense by company {i}',
+            'employee_id': self.expense_employee.id,
+            'product_id': self.product_a.id,
+            'payment_mode': 'company_account',
+            'date': '2021-01-01',
+            'quantity': i + 1,
+        } for i in range(3)])
+        sheet_names = [sheet['name'] for sheet in expenses._get_default_expense_sheet_values()]
+        self.assertSequenceEqual(
+            ("New Expense Report, paid by employee", format_date(self.env, expenses[-1].date)),
+            sheet_names,
+            "The report name should be 'New Expense Report, paid by (employee|company)' as a fallback",
+        )
+
+    def test_expense_product_update(self):
+        """ Test that the expense line is correctly updated or not when its product price is updated."""
+        #pylint: disable=bad-whitespace
+        product = self.env['product.product'].create({
+            'name': 'product',
+            'uom_id': self.env.ref('uom.product_uom_unit').id,
+            'lst_price': 100.0,
+            'standard_price': 0.0,
+            'property_account_income_id': self.company_data['default_account_revenue'].id,
+            'property_account_expense_id': self.company_data['default_account_expense'].id,
+            'supplier_taxes_id': False,
+        })
+
+        sheet_no_update, sheet_update = sheets = self.env['hr.expense.sheet'].create([{
+            'company_id': self.env.company.id,
+            'employee_id': self.expense_employee.id,
+            'name': name,
+            'expense_line_ids': [
+                Command.create({
+                    'name': name,
+                    'date': '2016-01-01',
+                    'product_id': product.id,
+                    'total_amount': 100.0,
+                    'employee_id': self.expense_employee.id
+                }),
+            ],
+        } for name in ('test sheet no update', 'test sheet update')])
+
+        sheet_no_update.action_submit_sheet()  # No update when sheet is submitted
+        self.assertRecordValues(sheets.expense_line_ids.sorted('name'), [
+            {'name': 'test sheet no update', 'price_unit': 100.0, 'quantity': 1, 'total_amount': 100.0},
+            {'name':    'test sheet update', 'price_unit': 100.0, 'quantity': 1, 'total_amount': 100.0},
+        ])
+        product.standard_price = 50.0
+        self.assertRecordValues(sheets.expense_line_ids.sorted('name'), [
+            {'name': 'test sheet no update', 'price_unit': 100.0, 'quantity': 1, 'total_amount': 100.0},
+            {'name':    'test sheet update', 'price_unit':  50.0, 'quantity': 1, 'total_amount':  50.0},  # price_unit is updated
+        ])
+        sheet_update.expense_line_ids.quantity = 5
+        self.assertRecordValues(sheets.expense_line_ids.sorted('name'), [
+            {'name': 'test sheet no update', 'price_unit': 100.0, 'quantity': 1, 'total_amount': 100.0},
+            {'name':    'test sheet update', 'price_unit':  50.0, 'quantity': 5, 'total_amount': 250.0},  # quantity & total are updated
+        ])
+        product.standard_price = 0.0
+        self.assertRecordValues(sheets.expense_line_ids.sorted('name'), [
+            {'name': 'test sheet no update', 'price_unit': 100.0, 'quantity': 1, 'total_amount': 100.0},
+            {'name':    'test sheet update', 'price_unit': 250.0, 'quantity': 1, 'total_amount': 250.0},  # quantity & price_unit only are updated
+        ])
+
+        sheet_update.action_submit_sheet()  # This sheet should not be updated any more
+        product.standard_price = 300.0
+        self.assertRecordValues(sheets.expense_line_ids.sorted('name'), [
+            {'name': 'test sheet no update', 'price_unit': 100.0, 'quantity': 1, 'total_amount': 100.0},
+            {'name':    'test sheet update', 'price_unit': 250.0, 'quantity': 1, 'total_amount': 250.0},  # no update
+        ])
+
+    def test_foreign_currencies_total(self):
+        Expense = self.env['hr.expense'].with_user(self.expense_user_employee)
+        Expense.create([{
+            'name': 'Company expense',
+            'payment_mode': 'company_account',
+            'total_amount_currency': 1000.00,
+            'employee_id': self.expense_employee.id,
+        },
+        {
+            'name': 'Company expense 2',
+            'payment_mode': 'company_account',
+            'currency_id': self.currency_data['currency'].id,
+            'total_amount_currency': 1000.00,
+            'total_amount': 2000.00,
+            'employee_id': self.expense_employee.id,
+        }])
+        expense_state = Expense.get_expense_dashboard()
+        self.assertEqual(expense_state['to_submit']['amount'], 3000.00)

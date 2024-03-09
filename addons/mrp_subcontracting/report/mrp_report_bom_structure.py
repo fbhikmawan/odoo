@@ -22,7 +22,10 @@ class ReportBomStructure(models.AbstractModel):
     def _get_bom_data(self, bom, warehouse, product=False, line_qty=False, bom_line=False, level=0, parent_bom=False, parent_product=False, index=0, product_info=False, ignore_stock=False):
         res = super()._get_bom_data(bom, warehouse, product, line_qty, bom_line, level, parent_bom, parent_product, index, product_info, ignore_stock)
         if bom.type == 'subcontract' and not self.env.context.get('minimized', False):
-            seller = res['product']._select_seller(quantity=res['quantity'], uom_id=bom.product_uom_id, params={'subcontractor_ids': bom.subcontractor_ids})
+            if not res['product']:
+                seller = bom.product_tmpl_id.seller_ids.filtered(lambda s: s.partner_id in bom.subcontractor_ids)[:1]
+            else:
+                seller = res['product']._select_seller(quantity=res['quantity'], uom_id=bom.product_uom_id, params={'subcontractor_ids': bom.subcontractor_ids})
             if seller:
                 res['subcontracting'] = self._get_subcontracting_line(bom, seller, level + 1, res['quantity'])
                 if not self.env.context.get('minimized', False):
@@ -88,6 +91,7 @@ class ReportBomStructure(models.AbstractModel):
 
     @api.model
     def _get_quantities_info(self, product, bom_uom, product_info, parent_bom=False, parent_product=False):
+        quantities_info = super()._get_quantities_info(product, bom_uom, product_info, parent_bom, parent_product)
         if parent_product and parent_bom and parent_bom.type == 'subcontract' and product.type == 'product':
             route_info = product_info.get(parent_product.id, {}).get(parent_bom.id, {})
             if route_info and route_info['route_type'] == 'subcontract':
@@ -97,13 +101,12 @@ class ReportBomStructure(models.AbstractModel):
                 stock_loc = f"subcontract_{subcontracting_loc.id}"
                 if not product_info[product.id]['consumptions'].get(stock_loc, False):
                     product_info[product.id]['consumptions'][stock_loc] = 0
-                return {
-                    'free_qty': product.uom_id._compute_quantity(subloc_product.free_qty, bom_uom),
-                    'on_hand_qty': product.uom_id._compute_quantity(subloc_product.qty_available, bom_uom),
-                    'stock_loc': stock_loc,
-                }
+                quantities_info['free_to_manufacture_qty'] = product.uom_id._compute_quantity(subloc_product.free_qty, bom_uom)
+                quantities_info['free_qty'] += quantities_info['free_to_manufacture_qty']
+                quantities_info['on_hand_qty'] += product.uom_id._compute_quantity(subloc_product.qty_available, bom_uom)
+                quantities_info['stock_loc'] = stock_loc
 
-        return super()._get_quantities_info(product, bom_uom, product_info, parent_product)
+        return quantities_info
 
     @api.model
     def _get_resupply_availability(self, route_info, components):

@@ -745,7 +745,7 @@ msgstr "Color"
 #: model:ir.model.fields,field_description:hr.field_hr_employee_category__color
 #: model:ir.model.fields,field_description:hr.field_hr_employee_public__color
 msgid "Color Index"
-msgstr "Índice de colores"
+msgstr "Índice de color"
 
 #. module: hr
 #: model:ir.model,name:hr.model_res_company
@@ -3017,7 +3017,7 @@ msgid ""
 "You can use this field for quick search."
 msgstr ""
 "El código ISO del país en dos caracteres.\n"
-"Puede utilizar este campo para una búsqueda rápida."
+"Puede utilizar este campo para realizar una búsqueda rápida."
 
 #. module: hr
 #: model_terms:hr.job,description:hr.job_marketing

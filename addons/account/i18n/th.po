@@ -5,8 +5,8 @@
 # Translators:
 # Martin Trigaux, 2023
 # Wichanon Jamwutthipreecha, 2023
-# Wil Odoo, 2024
 # Rasareeyar Lappiam, 2024
+# Wil Odoo, 2024
 # 
 msgid ""
 msgstr ""
@@ -14,7 +14,7 @@ msgstr ""
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2024-01-29 10:44+0000\n"
 "PO-Revision-Date: 2023-10-26 23:09+0000\n"
-"Last-Translator: Rasareeyar Lappiam, 2024\n"
+"Last-Translator: Wil Odoo, 2024\n"
 "Language-Team: Thai (https://app.transifex.com/odoo/teams/41243/th/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -7931,7 +7931,7 @@ msgstr "\"ช่วงของรหัสไปรษณีย์\" ไม่�
 #: code:addons/account/models/account_report.py:0
 #, python-format
 msgid "Invalid domain for expression '%s' of line '%s': %s"
-msgstr ""
+msgstr "โดเมนไม่ถูกต้องสำหรับตัวสั่งงาน '%s' ของบรรทัด '%s': %s"
 
 #. module: account
 #. odoo-python
@@ -9647,6 +9647,13 @@ msgstr "สุทธิ"
 #: model:ir.model.fields.selection,name:account.selection__account_report__filter_hierarchy__never
 msgid "Never"
 msgstr "ไม่เคย"
+
+#. module: account
+#. odoo-python
+#: code:addons/account/models/account_tax.py:0
+#, python-format
+msgid "New"
+msgstr "ใหม่"
 
 #. module: account
 #: model:ir.model.fields,field_description:account.field_account_setup_bank_manual_config__new_journal_name
@@ -11814,6 +11821,14 @@ msgstr ""
 #: model:ir.model,name:account.model_account_resequence_wizard
 msgid "Remake the sequence of Journal Entries."
 msgstr "สร้างลำดับของรายการสมุดรายวันใหม่"
+
+#. module: account
+#. odoo-python
+#: code:addons/account/models/account_tax.py:0
+#: code:addons/account/models/account_tax.py:0
+#, python-format
+msgid "Removed"
+msgstr "ถูกลบออก"
 
 #. module: account
 #: model:account.account,name:account.1_expense_rent
@@ -16819,6 +16834,9 @@ msgid ""
 "already posted. If you are absolutely sure you want to modify the opening "
 "balance of your accounts, reset the move to draft."
 msgstr ""
+"คุณไม่สามารถนำเข้า \"openning_balance\" ได้หากมีการลงรายการย้ายการเปิด (%s) "
+"แล้ว หากคุณแน่ใจอย่างยิ่งว่าต้องการแก้ไขยอดดุลเปิดบัญชี "
+"ให้รีเซ็ตการย้ายเป็นร่าง"
 
 #. module: account
 #. odoo-python

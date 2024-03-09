@@ -1,7 +1,8 @@
 
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
-from odoo import api, fields, models
+from odoo import _, api, fields, models
+from odoo.exceptions import ValidationError
 
 
 class ProductDocument(models.Model):
@@ -10,7 +11,7 @@ class ProductDocument(models.Model):
     _inherits = {
         'ir.attachment': 'ir_attachment_id',
     }
-    _order = 'id desc'
+    _order = 'name'
 
     ir_attachment_id = fields.Many2one(
         'ir.attachment',
@@ -19,6 +20,16 @@ class ProductDocument(models.Model):
         ondelete='cascade')
 
     active = fields.Boolean(default=True)
+
+    @api.onchange('url')
+    def _onchange_url(self):
+        for attachment in self:
+            if attachment.type == 'url' and attachment.url and\
+                not attachment.url.startswith(('https://', 'http://', 'ftp://')):
+                raise ValidationError(_(
+                    "Please enter a valid URL.\nExample: https://www.odoo.com\n\nInvalid URL: %s",
+                    attachment.url
+                ))
 
     #=== CRUD METHODS ===#
 

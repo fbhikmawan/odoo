@@ -291,7 +291,7 @@ msgid ""
 "the separator character."
 msgstr ""
 "Ocurrió un error al importar los registros: todas las filas deben tener el "
-"mismo tamaño, pero el titulo de la fila tiene %d entradas mientras que la "
+"mismo tamaño, pero la fila de título tiene %d entradas mientras que la "
 "primer fila tiene %d. Quizás necesite cambiar el carácter del separador."
 
 #. module: base_import
@@ -599,6 +599,13 @@ msgstr "Prevenir importación"
 #, python-format
 msgid "Preview"
 msgstr "Vista previa"
+
+#. module: base_import
+#. odoo-javascript
+#: code:addons/base_import/static/src/import_data_progress/import_data_progress.xml:0
+#, python-format
+msgid "Progress bar"
+msgstr ""
 
 #. module: base_import
 #. odoo-javascript
